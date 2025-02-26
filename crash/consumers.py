@@ -3,9 +3,10 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import time
 import secrets
 from asgiref.sync import sync_to_async
-from .models import GameStats
+from .models import GameStats, GameResult
 import asyncio
 import logging
+from decimal import Decimal
 
 # Настраиваем логгер
 logger = logging.getLogger('crash.game')
@@ -18,7 +19,8 @@ class CrashConsumer(AsyncWebsocketConsumer):
         'start_time': None,
         'game_id': 0,
         'countdown': 10,
-        'next_game_time': time.time() + 10
+        'next_game_time': time.time() + 10,
+        'bets': []  # Добавим список для хранения ставок
     }
 
     @classmethod
@@ -53,8 +55,24 @@ class CrashConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard("crash_game", self.channel_name)
 
     async def receive(self, text_data):
-        # Обработка входящих сообщений (например, ставок)
-        pass
+        try:
+            data = json.loads(text_data)
+            if data['type'] == 'bet':
+                # Сохраняем ставку
+                bet = {
+                    'amount': float(data['amount']),
+                    'auto_cashout': float(data.get('auto_cashout', 0)),
+                    'cashout_multiplier': None  # Будет установлено при выводе
+                }
+                self.game_state['bets'].append(bet)
+            elif data['type'] == 'cashout':
+                # При выводе средств сохраняем множитель
+                for bet in self.game_state['bets']:
+                    if bet.get('cashout_multiplier') is None:  # Если еще не было вывода
+                        bet['cashout_multiplier'] = self.game_state['current_multiplier']
+                        break
+        except Exception as e:
+            logger.error(f"Error processing message: {e}")
 
     async def game_update(self, event):
         state = event['state'].copy()
@@ -106,6 +124,8 @@ class CrashConsumer(AsyncWebsocketConsumer):
                             coef=self.game_state['crash_point'],
                             game_id=next_game_id
                         )
+                        # Очищаем ставки для нового раунда
+                        self.game_state['bets'] = []
                 
                 elif self.game_state['status'] == 'running':
                     elapsed = current_time - self.game_state['start_time']
@@ -113,7 +133,8 @@ class CrashConsumer(AsyncWebsocketConsumer):
                     self.game_state['current_multiplier'] = float(f"{current_multiplier:.2f}")
                     
                     if self.game_state['current_multiplier'] >= self.game_state['crash_point']:
-                        self.game_state['status'] = 'crashed'
+                        # Вызываем end_game перед изменением статуса
+                        await self.end_game()
                         self.game_state['next_game_time'] = current_time + 5
                 
                 elif self.game_state['status'] == 'crashed':
@@ -142,3 +163,32 @@ class CrashConsumer(AsyncWebsocketConsumer):
             except Exception as e:
                 logger.error(f"Error in game loop: {e}")
                 await asyncio.sleep(1) 
+
+    async def end_game(self):
+        try:
+            total_bets = sum(bet['amount'] for bet in self.game_state['bets'])
+            total_payouts = sum(
+                bet['amount'] * bet['cashout_multiplier'] 
+                for bet in self.game_state['bets'] 
+                if bet.get('cashout_multiplier')
+            )
+            
+            casino_profit = total_bets - total_payouts
+
+            # Сохраняем результат игры
+            await sync_to_async(GameResult.objects.create)(
+                round_number=self.game_state['game_id'],
+                multiplier=Decimal(str(self.game_state['crash_point'])),
+                casino_profit=Decimal(str(casino_profit))
+            )
+
+            self.game_state['status'] = 'crashed'
+            await self.channel_layer.group_send(
+                "crash_game",
+                {
+                    "type": "game_update",
+                    "state": self.game_state
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error in end_game: {e}") 

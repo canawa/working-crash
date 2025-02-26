@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 from . import views
 
 urlpatterns = [
@@ -13,6 +13,4 @@ urlpatterns = [
     path('stats/mines', views.stats, name='stats_mines'),
     path('stats/bossfight', views.stats, name='stats_boss_fight'),
     path('stats/plinko', views.stats, name='stats_plinko'),
-    path('state/', views.get_game_state, name='game_state'),
-    path('make-bet/', views.make_bet, name='make_bet'),
 ]
