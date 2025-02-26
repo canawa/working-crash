@@ -18,8 +18,8 @@ current_game = {
     'crash_point': None,
     'start_time': None,
     'game_id': 0,
-    'countdown': 10,  # Увеличиваем время ожидания до 10 секунд
-    'next_game_time': time.time() + 10  # Начинаем с 10-секундного ожидания
+    'countdown': 10,  # Для начальной паузы на ставки
+    'next_game_time': time.time() + 10
 }
 
 # Глобальная переменная для хранения event loop
@@ -97,7 +97,7 @@ async def update_game_state():
                 if current_game['current_multiplier'] >= current_game['crash_point']:
                     print(f"Crashed at {current_game['crash_point']}x")
                     current_game['status'] = 'crashed'
-                    current_game['next_game_time'] = current_time + 10
+                    current_game['next_game_time'] = current_time + 5  # 5 секунд после краша
             
             elif current_game['status'] == 'crashed':
                 remaining = int(current_game['next_game_time'] - current_time)
@@ -107,7 +107,7 @@ async def update_game_state():
                 if current_time >= current_game['next_game_time']:
                     print("Resetting to waiting state")
                     current_game['status'] = 'waiting'
-                    current_game['next_game_time'] = current_time + 10
+                    current_game['next_game_time'] = current_time + 10  # 10 секунд на ставки
             
             # Уменьшаем интервал обновления для более плавной анимации
             await asyncio.sleep(0.02)
@@ -120,7 +120,7 @@ def get_game_state(request):
     return JsonResponse(current_game)
 
 def crash(request):
-    return render(request, 'crash/index.html', {'initial_state': current_game})
+    return render(request, 'crash/index.html')
 
 def move_to_main(request):
       return render(request, 'crash/index.html' )
