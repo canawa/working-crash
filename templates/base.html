@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Казино</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .error {
+            color: red;
+            margin-bottom: 15px;
+        }
+        .auth-trigger {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .auth-trigger:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        nav {
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        {% if user.is_authenticated %}
+            <span>Привет, {{ user.username }}!</span>
+            <a href="{% url 'logout' %}">Выйти</a>
+        {% else %}
+            <button class="auth-trigger">Зарегистрироваться или войти</button>
+        {% endif %}
+    </nav>
+    
+    {% include 'auth_modal.html' %}
+    
+    {% block content %}
+    {% endblock %}
+
+    <script src="{% static 'js/auth.js' %}"></script>
+
+    <script>
+        // Функция для проверки авторизации
+        function checkAuth(event) {
+            if (!{{ request.user.is_authenticated|yesno:"true,false" }}) {
+                if (event.target.classList.contains('requires-auth')) {
+                    event.preventDefault();
+                    window.location.href = "{% url 'register' %}";
+                }
+            }
+        }
+
+        // Добавляем слушатель на все интерактивные элементы
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('click', checkAuth);
+        });
+    </script>
+</body>
+</html> 
