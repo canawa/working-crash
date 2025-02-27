@@ -28,9 +28,12 @@ class GameResult(models.Model):
         return f"Round {self.round_number} - x{self.multiplier} - Profit: {self.casino_profit}₽"
 
 class Balance(models.Model):
-    session_id = models.CharField(max_length=100, unique=True)  # Для идентификации сессии
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00)  # Начальный баланс 1000
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    session_id = models.CharField(max_length=100, unique=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00)
     last_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Balance: {self.amount}₽"
+        if self.user:
+            return f"Balance: {self.amount}₽ (User: {self.user.username})"
+        return f"Balance: {self.amount}₽ (Session: {self.session_id})"

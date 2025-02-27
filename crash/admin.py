@@ -1,6 +1,25 @@
 from django.contrib import admin
-from .models import GameStats, GameResult
-# Register your models here.
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
+from .models import Balance, GameStats, GameResult
+
+class BalanceInline(admin.StackedInline):
+    model = Balance
+    can_delete = False
+
+class CustomUserAdmin(UserAdmin):
+    inlines = (BalanceInline,)
+    list_display = ('username', 'email', 'get_balance', 'date_joined', 'last_login', 'is_staff')
+    
+    def get_balance(self, obj):
+        try:
+            return f"{obj.balance.amount}₽"
+        except Balance.DoesNotExist:
+            return "Нет баланса"
+    get_balance.short_description = 'Баланс'
+
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
 admin.site.register(GameStats)
 
 @admin.register(GameResult)

@@ -28,20 +28,7 @@ body, html {
     flex-direction: row-reverse;
 }
 
-.side-container {
-    min-width: 280px;
-    width: 280px;
-    height: 100vh;
-    border: 2px solid red !important;
-    background: rgba(26, 26, 26, 0.7);
-    padding: 20px;
-    box-sizing: border-box;
-    font-size: 24px;
-    color: white;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 1;
-}
+
 
 .game_main_container {
     width: 50vw;
@@ -314,4 +301,72 @@ a:visited {
 .main-content {
     margin-left: 280px; /* Равно ширине боковой панели */
     padding: 20px;
+}
+
+.balance-info {
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 20px;
+}
+
+.register-button {
+    padding: 16px;
+    background: #00a651;  /* Приятный зеленый цвет */
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.register-button:hover {
+    background: #00b95c;  /* Чуть светлее при наведении */
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 166, 81, 0.3);
+}
+
+.register-button:active {
+    transform: translateY(0);
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.auth-button {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.auth-button.login {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.auth-button.login:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.auth-button.register {
+    background: #00a651;
+    color: white;
+}
+
+.auth-button.register:hover {
+    background: #00b95c;
 }

@@ -13,4 +13,7 @@ urlpatterns = [
     path('stats/mines', views.stats, name='stats_mines'),
     path('stats/bossfight', views.stats, name='stats_boss_fight'),
     path('stats/plinko', views.stats, name='stats_plinko'),
+    path('register/', views.register, name='register'),
+    path('login/', views.user_login, name='user_login'),
+    path('profile/', views.profile, name='profile'),
 ]
